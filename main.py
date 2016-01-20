@@ -16,28 +16,32 @@ if __name__ == "__main__":
 	program = cl.Program(context, kernelsource).build()
 	form_ident = program.form_iden_1     # one of the function in kernel
 	# form_ident.set_scalar_arg_dtypes([numpy.bool])  # cast data type
+	multip=program.bit_mul
 
 	# create host arrays
-	h_a = numpy.array([0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], dtype=numpy.float32)
+	h_a = numpy.uint8(0b10100011)
+	h_b = numpy.uint8(0b00111010)
+	h_c = numpy.uint8(0b00001000)
 
-	h_b = numpy.empty_like(h_a)
 	# h_c = numpy.empty_like(h_a)
-	Mdim = 4
-	Ndim = 4
+	#Mdim = 4
+	#Ndim = 4
 	# Mdim is the number of rows
 	# Ndim is the number of column
 
 	# create device buffers
 	mf = cl.mem_flags
 	d_a = cl.Buffer(context, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=h_a)
-	d_b = cl.Buffer(context, mf.READ_WRITE, h_b.nbytes)
-	# d_c = cl.enqueue_write_buffer_rect(, )
+	d_b = cl.Buffer(context, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=h_b)
+	d_c = cl.Buffer(context, mf.WRITE_ONLY, h_c.nbytes)
 
 	# run kernel
-	loopshape = (4, 4)
-	form_ident(queue, loopshape, None, d_a)
+	#loopshape = (4, 4)
+	#form_ident(queue, loopshape, None, d_a)
+	multip.set_scalar_arg_dtypes([None ,None ,None ,numpy.uint8])
+	multip(queue, 1, None, d_a, d_b, d_c,1)
 
 	# return results
-	cl.enqueue_copy(queue, h_b, d_a)
+	cl.enqueue_copy(queue, h_c, d_c)
 
-	print(h_b)
+	print(h_c)

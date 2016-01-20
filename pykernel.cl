@@ -1,16 +1,17 @@
-__kernel void bit_mul(__global bool* a, __global bool* b, __global bool* c)
+typedef unsigned char MY_INT;
+
+__kernel void bit_mul(__global MY_INT* a, __global ucharMY_INT* b, __global MY_INT* c)
 {
-    unsigned int i = get_global_id(0);
+    int i = get_global_id(0);
 
     c[i] = a[i] ^ b[i];
 }
 
-__kernel void form_iden_1(__global float* a)
+__kernel void form_iden_1(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c)
 {
-    int k;
     int i = get_global_id(0); //mainly use downwards
     int j = get_global_id(1); //mainly use to the right
-    int l;
+
     bool asdf[5] = {1,0,1,1,0};
     const int Mdim = 4 ;
     const int Ndim = 4 ;
