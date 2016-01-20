@@ -1,16 +1,19 @@
 typedef unsigned char MY_INT;
 
-__kernel void bit_mul(__global MY_INT* a, __global ucharMY_INT* b, __global MY_INT* c)
+__kernel void bit_mul(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c)
 {
     int i = get_global_id(0);
 
     c[i] = a[i] ^ b[i];
 }
 
+
+/*
 __kernel void form_iden_1(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c)
 {
     int i = get_global_id(0); //mainly use downwards
     int j = get_global_id(1); //mainly use to the right
+
 
     bool asdf[5] = {1,0,1,1,0};
     const int Mdim = 4 ;
@@ -22,7 +25,7 @@ __kernel void form_iden_1(__global MY_INT* a, __global MY_INT* b, __global MY_IN
 
     if ((i < Mdim) && (j < Ndim)) //limiting the work item on dimension of mat
     {
-        for ( k = 0; k < Ndim; k++ )
+        for ( int k = 0; k < Ndim; k++ )
         {
             int pivot_cand[Mdim]= {0};
 
@@ -36,7 +39,7 @@ __kernel void form_iden_1(__global MY_INT* a, __global MY_INT* b, __global MY_IN
             if( pivot_cand[k] == 0)
             {
                 //find the pivot  // to be optimized
-                for ( l=k+1; l < Mdim ; l++ )
+                for (  l=k+1; l < Mdim ; l++ )
                 {
                     if (pivot_cand[l]!=0)
                         break;
