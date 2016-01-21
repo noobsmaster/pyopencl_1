@@ -1,4 +1,5 @@
 typedef unsigned char MY_INT;
+typedef unsigned int D_INT;
 
 __kernel void bit_mul(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c)
 {
@@ -8,56 +9,44 @@ __kernel void bit_mul(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c
 }
 
 
-/*
-__kernel void form_iden_1(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c)
+__kernel void form_iden(__global MY_INT* a, __global MY_INT* b)
 {
-    int i = get_global_id(0); //mainly use downwards
-    int j = get_global_id(1); //mainly use to the right
+    int i = get_global_id(0); //number of arrays elements
 
+    bool asdf[20];
 
-    bool asdf[5] = {1,0,1,1,0};
-    const int Mdim = 4 ;
-    const int Ndim = 4 ;
-    //int m = a[2];
-    //printf("value of a2 = %d \n",m);
+    D_INT m;
+    D_INT n;
+    MY_INT swap_temp;
+    MY_INT xor_temp;
 
-    int tempmat[Ndim] = {0};
-
-    if ((i < Mdim) && (j < Ndim)) //limiting the work item on dimension of mat
+    for (m = 0; m < 8 ; m++ )
     {
-        for ( int k = 0; k < Ndim; k++ )
+        if (a[i] < (2^(8-m)) && a[i] > (2^(8-m-1)) )
         {
-            int pivot_cand[Mdim]= {0};
+            asdf[i]=1;
+        }
+        else
+        {
+            asdf[i]=0;
+        }
 
-            // check all element in the column for '1'
-            if (( a[ i*Ndim + k] ) != 0)
-            {
-                pivot_cand[i] = 1;
-            }
-
-            // if the pivot is currently zero
-            if( pivot_cand[k] == 0)
-            {
-                //find the pivot  // to be optimized
-                for (  l=k+1; l < Mdim ; l++ )
-                {
-                    if (pivot_cand[l]!=0)
-                        break;
-                }
-
-                //swapping pivot row
-                tempmat[j] = a[ l*Ndim + j ];
-                a[ l*Ndim + j] = a[ k*Ndim + j ];
-                a[ k*Ndim + j] = tempmat[j];
-            }
-            // clearing the non pivot element
-            if( (i != k) && (pivot_cand[i]!=0) )         //work item to skip the pivot element
-            {
-                a[ i*Ndim + j ]  = a[ i*Ndim + j ] + a[ k*Ndim + j ];
-
-            }
+        for (n = 0; asdf[n] == 0 ; n++);    //search for 1
+        if (n > m)                      //swap if needed
+        {
+            swap_temp = a[n];
+            a[n] = a[m];
+            a[m] = swap_temp;
+        }
+        asdf[m]=0;
+        xor_temp = a[m];
+        if (asdf[i] == 1)
+        {
+            a[i] = a[i] ^ xor_temp;
         }
     }
+    b[i] = a[i];
+
 
 }
 
