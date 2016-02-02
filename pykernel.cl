@@ -1,50 +1,77 @@
 typedef unsigned char MY_INT;
-typedef unsigned int D_INT;
 
 __kernel void bit_mul(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c)
 {
-    int i = get_global_id(0);
+    size_t i = get_global_id(0);
 
     c[i] = a[i] ^ b[i];
 }
 
 
-__kernel void form_iden(__global MY_INT* a, __global MY_INT* b)
+__kernel void form_iden(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c, __global MY_INT* d)
 {
-    int i = get_global_id(0); //number of arrays elements
+    size_t i = get_global_id(0); //number of arrays elements
 
-    bool asdf[20];
+    MY_INT asdf[20]; // pivot flag for 20 row
 
-    D_INT m;
-    D_INT n;
+    //size_t n;
+    MY_INT k;
     MY_INT swap_temp;
     MY_INT xor_temp;
+    MY_INT bit_comparator;
+    MY_INT bit_check;
 
-    for (m = 0; m < 8 ; m++ )
+    #pragma unroll 1
+    for (size_t m = 0; m < 8 ; m++ )
     {
-        if (a[i] < (2^(8-m)) && a[i] > (2^(8-m-1)) )
+        asdf[i]=0;
+
+        barrier(CLK_GLOBAL_MEM_FENCE);
+
+        bit_comparator = 1;
+        bit_comparator = (bit_comparator << (8-1-m));
+        bit_check = bit_comparator ^ bit_comparator; // zero
+
+        barrier(CLK_GLOBAL_MEM_FENCE);
+
+        asdf[i] = (a[i]&bit_comparator) ; //return a non zero value if 1 is found in that col
+
+        if (m==0)
         {
-            asdf[i]=1;
-        }
-        else
-        {
-            asdf[i]=0;
+            d[i]=asdf[i]; // result of bit comparator for the 1st iteration(m=1)
         }
 
-        for (n = 0; asdf[n] == 0 ; n++);    //search for 1
-        if (n > m)                      //swap if needed
+        barrier(CLK_GLOBAL_MEM_FENCE);
+
+        #pragma unroll 1
+        for(size_t n=m ; n<20 ; n++)
         {
-            swap_temp = a[n];
-            a[n] = a[m];
+            if ((a[n]&bit_comparator)!=0)
+            {
+                k=n;
+                c[m]=n; //debug output
+                break;
+            }
+        }
+        //search for 1
+
+        if (k > m)                      //swap if needed
+        {
+            swap_temp = a[k];
+            a[k] = a[m];
             a[m] = swap_temp;
         }
         asdf[m]=0;
+        asdf[k]=0;
         xor_temp = a[m];
-        if (asdf[i] == 1)
+        if (asdf[i] != 0)
         {
             a[i] = a[i] ^ xor_temp;
         }
+
+        barrier(CLK_GLOBAL_MEM_FENCE);
     }
+
     b[i] = a[i];
 
 
