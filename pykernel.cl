@@ -11,26 +11,17 @@ __kernel void bit_mul(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c
 __kernel void form_iden(__global MY_INT* a, __global MY_INT* b, __global MY_INT* c, __global MY_INT* d)
 {
     size_t i = get_global_id(0); //number of arrays elements
-
+    size_t n;
     MY_INT asdf[20]; // pivot flag for 20 row
-
-    //size_t n;
-    MY_INT k;
     MY_INT swap_temp;
     MY_INT xor_temp;
     MY_INT bit_comparator;
-    MY_INT bit_check;
 
-    #pragma unroll 1
+    // #pragma unroll 1
     for (size_t m = 0; m < 8 ; m++ )
     {
-        asdf[i]=0;
-
-        barrier(CLK_GLOBAL_MEM_FENCE);
-
         bit_comparator = 1;
         bit_comparator = (bit_comparator << (8-1-m));
-        bit_check = bit_comparator ^ bit_comparator; // zero
 
         barrier(CLK_GLOBAL_MEM_FENCE);
 
@@ -43,26 +34,25 @@ __kernel void form_iden(__global MY_INT* a, __global MY_INT* b, __global MY_INT*
 
         barrier(CLK_GLOBAL_MEM_FENCE);
 
-        #pragma unroll 1
-        for(size_t n=m ; n<20 ; n++)
+        //#pragma unroll 1
+        for(n=m ; n<20 ; n++)
         {
             if ((a[n]&bit_comparator)!=0)
             {
-                k=n;
                 c[m]=n; //debug output
                 break;
             }
         }
         //search for 1
 
-        if (k > m)                      //swap if needed
+        if (n > m)                      //swap if needed
         {
-            swap_temp = a[k];
-            a[k] = a[m];
+            swap_temp = a[n];
+            a[n] = a[m];
             a[m] = swap_temp;
         }
         asdf[m]=0;
-        asdf[k]=0;
+        asdf[n]=0;
         xor_temp = a[m];
         if (asdf[i] != 0)
         {
@@ -71,10 +61,7 @@ __kernel void form_iden(__global MY_INT* a, __global MY_INT* b, __global MY_INT*
 
         barrier(CLK_GLOBAL_MEM_FENCE);
     }
-
     b[i] = a[i];
-
-
 }
 
 /*
